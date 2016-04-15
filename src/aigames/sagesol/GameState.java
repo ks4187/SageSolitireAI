@@ -15,7 +15,7 @@ public class GameState {
     Stack<Integer>[][] deckCards;
     int remainingTrashes;
     
-    private static final boolean SINGLESAMEDECK = true;
+    private static final boolean SINGLESAMEDECK = false;
     
 
     private int[] playingCards;

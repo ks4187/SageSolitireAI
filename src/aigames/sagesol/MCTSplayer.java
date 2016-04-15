@@ -18,7 +18,7 @@ public class MCTSplayer {
 	private static final int FIVESTRAIGHT = 50;
 	private static final int FULLHOUSE = 70;
 	
-	private static final int MCTSITERATIONS = 500;
+	private static final int MCTSITERATIONS = 5000;
 	
 	public List<GameState> performMCTS(GameState startState){
 		
@@ -139,7 +139,7 @@ public class MCTSplayer {
 			               //there are any then that is added to this parent after out of the while loop 
 			node.setInTPolicyPath(true);
 			node.setVisits(node.getVisits()+1);
-			System.out.print("tree policy.. ");node.getState().displayBoard();
+			System.out.print("tree policy.. "+node.getState().getRemovedCards());
 			
 			for(GameState nState : nextStates){
 				if(node.getState().sameAs(nState)){ // Among all the states in nextStates check which was the one 
@@ -153,14 +153,14 @@ public class MCTSplayer {
 		if(!(nextStatesPoints.isEmpty())){
 			//there are a few states which are unexplored till now which are in nextStatesPoints
 			GameState state = nextStates.get(0);//randomly select one of the action which is not explored yet
-			System.out.print("unexplored.. ");state.displayBoard();
+			System.out.print("unexplored.. "+state.getRemovedCards());
 			pntsThisIter += nextStatesPoints.get(state);
 			gameNode = new GameTreeNode(state);
 		}
-		//System.out.print("parent   ");parent.getState().displayBoard();
-		//System.out.println("");
-		//System.out.print("child   ");gameNode.getState().displayBoard();
 		gameNode.setVisits(1);
+		System.out.print("parent   "+parent.getState().getRemovedCards());
+		System.out.println("");
+		System.out.print("child   "+gameNode.getState().getRemovedCards());
 		parent.addToChildren(gameNode);
 		gameNode.setInTPolicyPath(true);
 		return gameNode;

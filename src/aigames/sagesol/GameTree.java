@@ -7,7 +7,16 @@ class GameTreeNode {
 	GameState state;
 	float backReward;
 	int visits;
+	boolean inTPolicyPath;
 	
+	public boolean isInTPolicyPath() {
+		return inTPolicyPath;
+	}
+
+	public void setInTPolicyPath(boolean inTPolicyPath) {
+		this.inTPolicyPath = inTPolicyPath;
+	}
+
 	List<GameTreeNode> children;
 
 	GameTreeNode(GameState s) {

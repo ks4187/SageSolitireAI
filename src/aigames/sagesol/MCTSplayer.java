@@ -30,13 +30,14 @@ public class MCTSplayer {
 			GameTreeNode root = gameTree.getRoot();
 			//GameTreeNode parent = gameTree.getRoot();
 			int pntsThisIter = 0;
+			List<GameTreeNode> path;// = new ArrayList<GameTreeNode>();
 			GameTreeNode gameNode = selectNExpand(gameTree, pntsThisIter);
 			if(gameNode != null){
 				//gameNode.display();
 				//parent.addToChildren(gameNode);
-				gameNode.setVisits(gameNode.getVisits()+1);
+				//gameNode.setVisits(gameNode.getVisits()+1);
 				int reward = defaultRun(gameNode,pntsThisIter);
-				gameNode.setBackReward((gameNode.getBackReward() + reward)/gameNode.getVisits());
+				setBackRewardsToAllInPath(gameTree,gameNode,reward);
 			}
 			count++;
 		}
@@ -92,6 +93,28 @@ public class MCTSplayer {
 		return gameNode;
 	}*/
 
+	private void setBackRewardsToAllInPath(GameTree gameTree, GameTreeNode endNode, int reward) {
+		
+		GameTreeNode root = gameTree.getRoot();
+		List<GameTreeNode> children = root.getChildren();
+		GameTreeNode node = root;
+		while(node != endNode){
+			for(int i=0; i<children.size() ;i++){
+				node = children.get(i);
+				if(node.isInTPolicyPath()){
+					System.out.println("reward  "+reward);
+					System.out.println("visits  "+node.getVisits());
+					System.out.println("reward assigned "+ (node.getBackReward()*(node.getVisits()-1)+reward)/node.getVisits());
+					System.out.println("\n \n \n");
+					node.setBackReward((node.getBackReward()*(node.getVisits()-1)+reward)/node.getVisits());
+					node.setInTPolicyPath(false);
+					children = node.getChildren();
+					break;
+				}
+			}
+		}
+	}
+
 	private GameTreeNode selectNExpand(GameTree gameTree, int pntsThisIter) {
 
 		List<GameState> nextStates = new ArrayList<GameState>();
@@ -110,11 +133,13 @@ public class MCTSplayer {
 				return null;
 			}
 			
-			node.setVisits(node.getVisits()+1);
 			node = treePolicy(node); //returns a good child from a node(This child is already explored one) 
 			parent = node; //parent is required to add the child that we got into the tree which is unexplored 
 						   //after next few lines there will be a while check to find if there are any unexplored next states if
 			               //there are any then that is added to this parent after out of the while loop 
+			node.setInTPolicyPath(true);
+			node.setVisits(node.getVisits()+1);
+			System.out.print("tree policy.. ");node.getState().displayBoard();
 			
 			for(GameState nState : nextStates){
 				if(node.getState().sameAs(nState)){ // Among all the states in nextStates check which was the one 
@@ -128,13 +153,16 @@ public class MCTSplayer {
 		if(!(nextStatesPoints.isEmpty())){
 			//there are a few states which are unexplored till now which are in nextStatesPoints
 			GameState state = nextStates.get(0);//randomly select one of the action which is not explored yet
+			System.out.print("unexplored.. ");state.displayBoard();
 			pntsThisIter += nextStatesPoints.get(state);
 			gameNode = new GameTreeNode(state);
 		}
 		//System.out.print("parent   ");parent.getState().displayBoard();
 		//System.out.println("");
 		//System.out.print("child   ");gameNode.getState().displayBoard();
+		gameNode.setVisits(1);
 		parent.addToChildren(gameNode);
+		gameNode.setInTPolicyPath(true);
 		return gameNode;
 	}
 
@@ -148,6 +176,7 @@ public class MCTSplayer {
 				maxUct = uct;
 			}
 		}
+		System.out.println("Max UCT"+ maxUct);
 		return selChild;
 	}
 

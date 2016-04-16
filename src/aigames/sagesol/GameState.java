@@ -15,7 +15,7 @@ public class GameState {
     Stack<Integer>[][] deckCards;
     int remainingTrashes;
     
-    private static final boolean SINGLESAMEDECK = false;
+    private static final boolean SINGLESAMEDECK = true;
     
 
     private int[] playingCards;
@@ -30,18 +30,7 @@ public class GameState {
     private List<Integer> shuffledCards = new ArrayList<>();
     
     
-    private int[] fixedCards = {206,		
-    	                  9,	 		107,		 110,	 	304,	 	  11,		 102,		 313, 	    212,
-    	                  111,	 	    207,	 	 113,	 	306,		 312,	 	 307,	     203,		210, 
-    	                  8, 		      2, 	   	 7,		208,		 204,		 310,	     106,		101,
-    	                  
-    	                  302,	 	    303,		 201,		108,		 109,	 	 308,	     209,
-    	                   1, 		    301,		   3,	 	  5,		 104, 		   6,
-    	                   103,		    205,		 202,		112,	 	 213,
-    	                   
-    	                   305, 		4, 		      10, 		211, 		 
-    	                   13,			309,	      12, 		
-    	                   311,  		105};
+    private int[] fixedCards = {202, 13, 112, 105, 211, 207, 312, 201, 5, 101, 4, 104, 204, 106, 12, 313, 102, 311, 310, 305, 307, 308, 109, 203, 7, 304, 303, 205, 11, 107, 9, 110, 212, 111, 306, 309, 6, 10, 213, 113, 206, 209, 8, 3, 208, 301, 103, 1, 302, 2, 108, 210};
     
 
     public GameState(boolean start) {

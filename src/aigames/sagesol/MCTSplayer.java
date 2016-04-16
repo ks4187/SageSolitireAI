@@ -45,11 +45,12 @@ public class MCTSplayer {
 		List<GameTreeNode> children = node.getChildren();
 		
 		while(!children.isEmpty()){
-			int maxBackReward = 0;
+			float maxBackReward = 0;
 			GameTreeNode goodChild = null;
 			for(GameTreeNode child : children){
 				 if(child.getBackReward() > maxBackReward){
 					 goodChild  = child; 
+					 maxBackReward = child.getBackReward();
 				 }
 			}
 			maxScorePath.add(goodChild.getState());

@@ -128,10 +128,10 @@ public class GameState {
         System.out.println("Removed Cards");
         if(removedCards != null){
         	for(Integer card : removedCards){
-            	System.out.print(card+" ");
+            	System.out.print(card+", ");
             }
         }
-        
+        System.out.println("Trashes"+remainingTrashes);
         
         System.out.println("");System.out.println("");System.out.println("");
 

@@ -18,7 +18,8 @@ public class MCTSplayer {
 	private static final int FIVESTRAIGHT = 50;
 	private static final int FULLHOUSE = 70;
 	
-	private static final int MCTSITERATIONS = 5000;
+	private static final int MCTSITERATIONS = 10000;
+	private static final float Cp = 1;//(float) (1/Math.sqrt(2));
 	
 	public List<GameState> performMCTS(GameState startState){
 		
@@ -57,6 +58,22 @@ public class MCTSplayer {
 			node = goodChild;
 			children = node.getChildren();
 		}
+		/*node = gameTree.getRoot();
+		children = node.getChildren();
+		
+		while(!children.isEmpty()){
+			int maxVisits = 0;
+			GameTreeNode goodChild = null;
+			for(GameTreeNode child : children){
+				 if(child.getVisits() > maxVisits){
+					 goodChild  = child; 
+					 maxVisits = child.getVisits();
+				 }
+			}
+			maxScorePath.add(goodChild.getState());
+			node = goodChild;
+			children = node.getChildren();
+		}*/
 		
 		return maxScorePath;
 		
@@ -131,6 +148,7 @@ public class MCTSplayer {
 			getNextStates(node.getState(), nextStates, nextStatesPoints);// find next states of this child
 			
 			if(nextStates.isEmpty()){ //when the node's state is the terminal state
+				node.setVisits(node.getVisits()-1);
 				return null;
 			}
 			
@@ -171,7 +189,7 @@ public class MCTSplayer {
 		float maxUct = 0;
 		GameTreeNode selChild = null;
 		for(GameTreeNode child : node.getChildren()){
-			float uct = (float) (child.getBackReward() + 2 * Math.sqrt(Math.log(child.getVisits())/Math.log(node.getVisits()))); //Cp = 1/sqrt(2)
+			float uct = (float) (child.getBackReward() + 2 * Cp * Math.sqrt(2 * Math.log(child.getVisits())/node.getVisits()));
 			if(uct >= maxUct){
 				selChild = child;
 				maxUct = uct;
@@ -222,11 +240,12 @@ public class MCTSplayer {
 		while(!nStatesPoints.isEmpty()){
 			Set<GameState> gameStateSet = nStatesPoints.keySet();
 			GameState selState = null;
-			int randomNum = (int) Math.random()*(gameStateSet.size()-1);
+			int randomNum = (int) (Math.random()*(gameStateSet.size()-1));
 			int i = 0;
 			for(GameState state : gameStateSet){
 				if(i == randomNum){
 					selState = state;
+					break;
 				}
 				i++;
 			}
@@ -238,7 +257,7 @@ public class MCTSplayer {
 		return pntsThisIter;
 	}
 
-	private void getNextStates(GameState presentState, List<GameState> nextStates, HashMap<GameState,Integer> nextStateWithPoints){
+	public void getNextStates(GameState presentState, List<GameState> nextStates, HashMap<GameState,Integer> nextStateWithPoints){
 		
 		ArrayList<GameState> nextStatesCopy = new ArrayList<GameState>();
 		nextStatesCopy.addAll(nextStates);

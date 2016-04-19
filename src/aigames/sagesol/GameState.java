@@ -133,7 +133,7 @@ public class GameState {
         }
         System.out.println("Trashes"+remainingTrashes);
         
-        System.out.println("");System.out.println("");System.out.println("");
+        //System.out.println("");System.out.println("");System.out.println("");
 
     }
 

@@ -18,46 +18,59 @@ public class MCTSplayer {
 	private static final int FIVESTRAIGHT = 50;
 	private static final int FULLHOUSE = 70;
 	
-	private static final int MCTSITERATIONS = 10000;
-	private static final float Cp = 1;//(float) (1/Math.sqrt(2));
+	private static final int MCTSITERATIONS = 2000;
+	private static final double Cp = 100;//1/(Math.sqrt(2)); //;
 	
-	public List<GameState> performMCTS(GameState startState){
+	public List<GameTreeNode> performMCTS(GameState startState){
 		
-		ArrayList<GameState> maxScorePath = new ArrayList<GameState>();
+		ArrayList<GameTreeNode> maxScorePath = new ArrayList<GameTreeNode>();
 		//maxScorePath.add(startState);
 		int count = 0;
+		int maxReward = 0;
 		GameTree gameTree = new GameTree(startState);
 		while(count < MCTSITERATIONS){
 			GameTreeNode root = gameTree.getRoot();
 			//GameTreeNode parent = gameTree.getRoot();
 			int pntsThisIter = 0;
-			List<GameTreeNode> path;// = new ArrayList<GameTreeNode>();
-			GameTreeNode gameNode = selectNExpand(gameTree, pntsThisIter);
+			ArrayList<GameTreeNode> path = new ArrayList<GameTreeNode>();
+			GameTreeNode gameNode = selectNExpand(gameTree, pntsThisIter, path);
 			if(gameNode != null){
 				//gameNode.display();
 				//parent.addToChildren(gameNode);
 				//gameNode.setVisits(gameNode.getVisits()+1);
-				int reward = defaultRun(gameNode,pntsThisIter);
+				int reward = defaultRun(gameNode,pntsThisIter,path);
+				if(reward >= maxReward){
+					maxReward = reward;
+					maxScorePath.clear();
+					maxScorePath.addAll(path);
+					System.out.print("maxReward "+maxReward);System.out.println(" Iteration"+count);
+				}
+				//int reward = defaultRunAstar(gameNode, pntsThisIter);
+				//System.out.println("reward  "+reward+"\n");
 				setBackRewardsToAllInPath(gameTree,gameNode,reward);
 			}
 			count++;
 		}
-		GameTreeNode node = gameTree.getRoot();
+		/*GameTreeNode node = gameTree.getRoot();
 		List<GameTreeNode> children = node.getChildren();
 		
 		while(!children.isEmpty()){
 			float maxBackReward = 0;
 			GameTreeNode goodChild = null;
 			for(GameTreeNode child : children){
+				System.out.println("removed "+child.getState().getRemovedCards());
+				System.out.println("backreward "+child.getBackReward());
 				 if(child.getBackReward() > maxBackReward){
 					 goodChild  = child; 
 					 maxBackReward = child.getBackReward();
 				 }
 			}
+			System.out.println("good child "+goodChild.getState().getRemovedCards());
+			System.out.println("max backreward "+goodChild.getBackReward());
 			maxScorePath.add(goodChild.getState());
 			node = goodChild;
 			children = node.getChildren();
-		}
+		}*/
 		/*node = gameTree.getRoot();
 		children = node.getChildren();
 		
@@ -120,10 +133,10 @@ public class MCTSplayer {
 			for(int i=0; i<children.size() ;i++){
 				node = children.get(i);
 				if(node.isInTPolicyPath()){
-					System.out.println("reward  "+reward);
-					System.out.println("visits  "+node.getVisits());
-					System.out.println("reward assigned "+ (node.getBackReward()*(node.getVisits()-1)+reward)/node.getVisits());
-					System.out.println("\n \n \n");
+					//System.out.println("reward  "+reward);
+					//System.out.println("visits  "+node.getVisits());
+					//System.out.println("reward assigned "+ (node.getBackReward()*(node.getVisits()-1)+reward)/node.getVisits());
+					//System.out.print("state  "+node.getState().getRemovedCards());
 					node.setBackReward((node.getBackReward()*(node.getVisits()-1)+reward)/node.getVisits());
 					node.setInTPolicyPath(false);
 					children = node.getChildren();
@@ -133,7 +146,7 @@ public class MCTSplayer {
 		}
 	}
 
-	private GameTreeNode selectNExpand(GameTree gameTree, int pntsThisIter) {
+	private GameTreeNode selectNExpand(GameTree gameTree, int pntsThisIter, List<GameTreeNode> path) {
 
 		List<GameState> nextStates = new ArrayList<GameState>();
 		HashMap<GameState, Integer> nextStatesPoints = new HashMap<GameState, Integer>();
@@ -142,6 +155,7 @@ public class MCTSplayer {
 		GameTreeNode parent = gameTree.getRoot();
 		GameTreeNode node = gameTree.getRoot();
 		node.setVisits(node.getVisits()+1); //incrementing root's visits
+		path.add(node);
 		
 		while(anyNextUnexploredStates(node, nextStates, nextStatesPoints)){// all state explored, time for tree policy
 			
@@ -153,12 +167,13 @@ public class MCTSplayer {
 			}
 			
 			node = treePolicy(node); //returns a good child from a node(This child is already explored one) 
+			path.add(node);
 			parent = node; //parent is required to add the child that we got into the tree which is unexplored 
 						   //after next few lines there will be a while check to find if there are any unexplored next states if
 			               //there are any then that is added to this parent after out of the while loop 
 			node.setInTPolicyPath(true);
 			node.setVisits(node.getVisits()+1);
-			System.out.print("tree policy.. "+node.getState().getRemovedCards());
+			//System.out.println("tree policy.. "+node.getState().getRemovedCards());
 			
 			for(GameState nState : nextStates){
 				if(node.getState().sameAs(nState)){ // Among all the states in nextStates check which was the one 
@@ -172,15 +187,16 @@ public class MCTSplayer {
 		if(!(nextStatesPoints.isEmpty())){
 			//there are a few states which are unexplored till now which are in nextStatesPoints
 			GameState state = nextStates.get(0);//randomly select one of the action which is not explored yet
-			System.out.print("unexplored.. "+state.getRemovedCards());
+			//System.out.println("unexplored.. "+state.getRemovedCards());
 			pntsThisIter += nextStatesPoints.get(state);
 			gameNode = new GameTreeNode(state);
 		}
 		gameNode.setVisits(1);
-		System.out.print("parent   "+parent.getState().getRemovedCards());
-		System.out.println("");
-		System.out.print("child   "+gameNode.getState().getRemovedCards());
+		//System.out.println("parent   "+parent.getState().getRemovedCards());
+		//System.out.println("");
+		//System.out.println("child   "+gameNode.getState().getRemovedCards());
 		parent.addToChildren(gameNode);
+		path.add(gameNode);
 		gameNode.setInTPolicyPath(true);
 		return gameNode;
 	}
@@ -189,13 +205,13 @@ public class MCTSplayer {
 		float maxUct = 0;
 		GameTreeNode selChild = null;
 		for(GameTreeNode child : node.getChildren()){
-			float uct = (float) (child.getBackReward() + 2 * Cp * Math.sqrt(2 * Math.log(child.getVisits())/node.getVisits()));
+			float uct = (float) (child.getBackReward() + 2 * Cp * Math.sqrt(2 * Math.log(node.getVisits())/child.getVisits()));
 			if(uct >= maxUct){
 				selChild = child;
 				maxUct = uct;
 			}
 		}
-		System.out.println("Max UCT"+ maxUct);
+		//System.out.println("Max UCT"+ maxUct);
 		return selChild;
 	}
 
@@ -232,7 +248,7 @@ public class MCTSplayer {
 		nextStates.removeAll(toBeRemoved);
 	}
 
-	private int defaultRun(GameTreeNode gameNode, int pntsThisIter) {
+	private int defaultRun(GameTreeNode gameNode, int pntsThisIter, List<GameTreeNode> path) {
 		List<GameState> nextStates = new ArrayList<GameState>();
 		GameTreeNode node = gameNode;
 		HashMap<GameState, Integer> nStatesPoints = new HashMap<GameState, Integer>();
@@ -248,6 +264,31 @@ public class MCTSplayer {
 					break;
 				}
 				i++;
+			}
+			node = new GameTreeNode(selState);//node is incremented to one of the randomly selected node
+			path.add(node);
+			pntsThisIter += nStatesPoints.get(selState);//points are calculated corresponding to that random selected node
+			
+			getNextStates(node.getState(), nextStates, nStatesPoints);//next state points are calculated for the next iteration
+		}
+		return pntsThisIter;
+	}
+	
+	private int defaultRunAstar(GameTreeNode gameNode, int pntsThisIter) {
+		List<GameState> nextStates = new ArrayList<GameState>();
+		GameTreeNode node = gameNode;
+		HashMap<GameState, Integer> nStatesPoints = new HashMap<GameState, Integer>();
+		getNextStates(node.getState(), nextStates, nStatesPoints);
+		while(!nStatesPoints.isEmpty()){
+			Set<GameState> gameStateSet = nStatesPoints.keySet();
+			GameState selState = null;
+			int maxPoints = 0;
+			for(GameState state : gameStateSet){
+				Integer points = nStatesPoints.get(state);
+				if(points >= maxPoints){
+					selState = state;
+					maxPoints = points;
+				}
 			}
 			node = new GameTreeNode(selState);//node is incremented to one of the randomly selected node
 			pntsThisIter += nStatesPoints.get(selState);//points are calculated corresponding to that random selected node
@@ -378,6 +419,7 @@ public class MCTSplayer {
 									}
 									
 									int remTrashes = presentState.getRemainingTrashes();
+									nState.setRemainingTrashes(remTrashes);
 									if(remTrashes < 2){
 										nState.setRemainingTrashes(remTrashes+1);
 									}
@@ -477,6 +519,7 @@ public class MCTSplayer {
 								}
 								
 								int remTrashes = presentState.getRemainingTrashes();
+								nState.setRemainingTrashes(remTrashes);
 								if(remTrashes < 2){
 									nState.setRemainingTrashes(remTrashes+1);
 								}
@@ -549,6 +592,7 @@ public class MCTSplayer {
 								}
 								
 								int remTrashes = presentState.getRemainingTrashes();
+								nState.setRemainingTrashes(remTrashes);
 								if(remTrashes < 2){
 									nState.setRemainingTrashes(remTrashes+1);
 								}
@@ -609,6 +653,7 @@ public class MCTSplayer {
 									}
 									
 									int remTrashes = presentState.getRemainingTrashes();
+									nState.setRemainingTrashes(remTrashes);
 									if(remTrashes < 2){
 										nState.setRemainingTrashes(remTrashes+1);
 									}

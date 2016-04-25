@@ -5,10 +5,19 @@ import java.util.List;
 
 class GameTreeNode {
 	GameState state;
-	float backReward;
+	float backMaxReward;
 	int visits;
 	boolean inTPolicyPath;
+	float backAvgReward;
 	
+	public float getBackAvgReward() {
+		return backAvgReward;
+	}
+
+	public void setBackAvgReward(float backAvgReward) {
+		this.backAvgReward = backAvgReward;
+	}
+
 	public boolean isInTPolicyPath() {
 		return inTPolicyPath;
 	}
@@ -22,16 +31,15 @@ class GameTreeNode {
 	GameTreeNode(GameState s) {
 		state = s;
 		children = new ArrayList<GameTreeNode>();
-		backReward = 0;
 		visits = 0;
 	}
 
-	public float getBackReward() {
-		return backReward;
+	public float getBackMaxReward() {
+		return backMaxReward;
 	}
 
-	public void setBackReward(float backReward) {
-		this.backReward = backReward;
+	public void setBackMaxReward(float backMaxReward) {
+		this.backMaxReward = backMaxReward;
 	}
 
 	public int getVisits() {

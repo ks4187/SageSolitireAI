@@ -2,7 +2,6 @@ package aigames.sagesol;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
@@ -19,7 +18,7 @@ public class MCTSplayer {
 	private static final int FULLHOUSE = 70;
 	
 	private static final int MCTSITERATIONS = 2000;
-	private static final double Cp = 100;//1/(Math.sqrt(2)); //;
+	private static final double Cp = 1/(Math.sqrt(2)); //;
 	
 	public List<GameTreeNode> performMCTS(GameState startState){
 		
@@ -51,26 +50,47 @@ public class MCTSplayer {
 			}
 			count++;
 		}
-		/*GameTreeNode node = gameTree.getRoot();
+		GameTreeNode node = gameTree.getRoot();
 		List<GameTreeNode> children = node.getChildren();
+		ArrayList<GameState> maxScorePath2 = new ArrayList<GameState>();
 		
 		while(!children.isEmpty()){
 			float maxBackReward = 0;
 			GameTreeNode goodChild = null;
 			for(GameTreeNode child : children){
-				System.out.println("removed "+child.getState().getRemovedCards());
-				System.out.println("backreward "+child.getBackReward());
-				 if(child.getBackReward() > maxBackReward){
+				//System.out.println("removed "+child.getState().getRemovedCards());
+				//System.out.println("backreward "+child.getBackReward());
+				 if(child.getBackMaxReward() >= maxBackReward){
 					 goodChild  = child; 
-					 maxBackReward = child.getBackReward();
+					 maxBackReward = child.getBackMaxReward();
 				 }
 			}
-			System.out.println("good child "+goodChild.getState().getRemovedCards());
-			System.out.println("max backreward "+goodChild.getBackReward());
-			maxScorePath.add(goodChild.getState());
+			//System.out.println("child selected from backreward");
+			//goodChild.display();
+			//System.out.println("max backreward "+goodChild.getBackReward());
+			maxScorePath2.add(goodChild.getState());
 			node = goodChild;
 			children = node.getChildren();
-		}*/
+		}
+		GameState prevState = gameTree.getRoot().getState();
+		int points = 0;
+		for(int i=0;i<maxScorePath2.size();i++){
+			GameState state = maxScorePath2.get(i);
+			HashMap<GameState, Integer> nextStateWithPoints = new HashMap<GameState, Integer>();
+			List<GameState> nextStates = new ArrayList<GameState>();
+			
+			getNextStates(prevState, nextStates, nextStateWithPoints);
+			prevState = state;
+			for(GameState nState : nextStates){
+				if(state.sameAs(nState)){
+					state = nState;
+					break;
+				}
+			}
+			points += nextStateWithPoints.get(state);
+		}
+		//System.out.println("MCTS Total Score"+points+"\n\n\n\n");
+		
 		/*node = gameTree.getRoot();
 		children = node.getChildren();
 		
@@ -137,7 +157,10 @@ public class MCTSplayer {
 					//System.out.println("visits  "+node.getVisits());
 					//System.out.println("reward assigned "+ (node.getBackReward()*(node.getVisits()-1)+reward)/node.getVisits());
 					//System.out.print("state  "+node.getState().getRemovedCards());
-					node.setBackReward((node.getBackReward()*(node.getVisits()-1)+reward)/node.getVisits());
+					node.setBackAvgReward((node.getBackAvgReward()*(node.getVisits()-1)+reward)/node.getVisits());
+					if(reward >= node.getBackMaxReward()){
+						node.setBackMaxReward(reward);
+					}
 					node.setInTPolicyPath(false);
 					children = node.getChildren();
 					break;
@@ -191,6 +214,9 @@ public class MCTSplayer {
 			pntsThisIter += nextStatesPoints.get(state);
 			gameNode = new GameTreeNode(state);
 		}
+		if(gameNode == null){//tree policy reached terminal state
+			return null;
+		}
 		gameNode.setVisits(1);
 		//System.out.println("parent   "+parent.getState().getRemovedCards());
 		//System.out.println("");
@@ -205,7 +231,9 @@ public class MCTSplayer {
 		float maxUct = 0;
 		GameTreeNode selChild = null;
 		for(GameTreeNode child : node.getChildren()){
-			float uct = (float) (child.getBackReward() + 2 * Cp * Math.sqrt(2 * Math.log(node.getVisits())/child.getVisits()));
+			//float uct = (float) (child.getBackAvgReward() + 2 * Cp * Math.sqrt(2 * Math.log(node.getVisits())/child.getVisits()));
+			double exploit = 0*child.getBackMaxReward()+(1-0)*child.getBackAvgReward();
+			float uct = (float) (exploit + 2 * Cp * Math.sqrt(2 * Math.log(node.getVisits())/child.getVisits()));
 			if(uct >= maxUct){
 				selChild = child;
 				maxUct = uct;
@@ -222,10 +250,10 @@ public class MCTSplayer {
 		List<GameState> nextStatesInTree = new ArrayList<GameState>();
 		nextStatesInTree = node.getAllChildrenStates();
 		getNextStates(node.getState(), nextStates, nextStatesPoints);
-		findNextNotInTree(nextStates, nextStatesInTree);//could have done nextStates.removeAll(nextStatesInTree) but the objects in the tree are different from that in the nextStates even if they are identical interms of cards and every other thing
 		if(nextStatesInTree.isEmpty()){
 			return false;   // there are unexplored states
 		}
+		findNextNotInTree(nextStates, nextStatesInTree);//could have done nextStates.removeAll(nextStatesInTree) but the objects in the tree are different from that in the nextStates even if they are identical interms of cards and every other thing
 		if(nextStates.isEmpty()){  //all states explored
 			return true;  // no unexplored
 		}

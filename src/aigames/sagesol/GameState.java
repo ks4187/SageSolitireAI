@@ -15,11 +15,19 @@ public class GameState {
     Stack<Integer>[][] deckCards;
     int remainingTrashes;
     
-    private static final boolean SINGLESAMEDECK = true;
+    private static final boolean SINGLESAMEDECK = false;
     
 
     private int[] playingCards;
-    private int[][] noOfCards = {
+    public int[] getPlayingCards() {
+		return playingCards;
+	}
+
+	public void setPlayingCards(int[] playingCards) {
+		this.playingCards = playingCards;
+	}
+
+	private int[][] noOfCards = {
             {8, 8, 8,},
             {7, 6, 5,},
             {4, 3, 2}
@@ -30,8 +38,16 @@ public class GameState {
     private List<Integer> shuffledCards = new ArrayList<>();
     
     
-    private int[] fixedCards = {202, 13, 112, 105, 211, 207, 312, 201, 5, 101, 4, 104, 204, 106, 12, 313, 102, 311, 310, 305, 307, 308, 109, 203, 7, 304, 303, 205, 11, 107, 9, 110, 212, 111, 306, 309, 6, 10, 213, 113, 206, 209, 8, 3, 208, 301, 103, 1, 302, 2, 108, 210};
-    
+    public List<Integer> getShuffledCards() {
+		return shuffledCards;
+	}
+
+	public void setShuffledCards(List<Integer> shuffledCards) {
+		this.shuffledCards = shuffledCards;
+	}
+
+	private int[] fixedCards = {202, 13, 112, 105, 211, 207, 312, 201, 5, 101, 4, 104, 204, 106, 12, 313, 102, 311, 310, 305, 307, 308, 109, 203, 7, 304, 303, 205, 11, 107, 9, 110, 212, 111, 306, 309, 6, 10, 213, 113, 206, 209, 8, 3, 208, 301, 103, 1, 302, 2, 108, 210};
+	//private int[] fixedCards = {210, 302, 105, 108, 112, 313, 201, 205, 102, 11, 309, 303, 208, 7, 3, 5, 212, 1, 4, 304, 111, 306, 206, 101, 312, 106, 204, 209, 207, 113, 109, 308, 307, 305, 203, 202, 103, 13, 211, 311, 310, 2, 10, 213, 8, 110, 6, 301, 9, 12, 107, 104};
 
     public GameState(boolean start) {
 
@@ -120,7 +136,12 @@ public class GameState {
             	}else{
             		System.out.print("Nil");
             	}
-            	System.out.print(" (" + (deckCards[i][j].size() - 1) + ")\t");
+            	if(deckCards[i][j].size() < 1){
+            		System.out.print(" (" + ("None") + ")\t");
+            	}else{
+            		System.out.print(" (" + (deckCards[i][j].size() - 1) + ")\t");
+            	}
+            	
             }
             System.out.println("");
         }

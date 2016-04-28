@@ -17,8 +17,12 @@ public class MCTSplayer {
 	private static final int FIVESTRAIGHT = 50;
 	private static final int FULLHOUSE = 70;
 	
-	private static final int MCTSITERATIONS = 2000;
+	private static final int MCTSITERATIONS = 20000;
 	private static final double Cp = 1/(Math.sqrt(2)); //;
+	private static final double MIXMAX = 0.75;
+	private static final float MAXHIGHSCORE = 3330;//Maximum high score possible
+	private static final double MAXSCOREONEMOVE = 150;//Straight flush 
+	private static double maxExploit = 0;
 	
 	public List<GameTreeNode> performMCTS(GameState startState){
 		
@@ -58,13 +62,13 @@ public class MCTSplayer {
 			float maxBackReward = 0;
 			GameTreeNode goodChild = null;
 			for(GameTreeNode child : children){
-				//System.out.println("removed "+child.getState().getRemovedCards());
 				//System.out.println("backreward "+child.getBackReward());
-				 if(child.getBackMaxReward() >= maxBackReward){
+				 if(child.getBackAvgReward() >= maxBackReward){
 					 goodChild  = child; 
-					 maxBackReward = child.getBackMaxReward();
+					 maxBackReward = child.getBackAvgReward();
 				 }
 			}
+			System.out.println("removed "+goodChild.getState().getRemovedCards());
 			//System.out.println("child selected from backreward");
 			//goodChild.display();
 			//System.out.println("max backreward "+goodChild.getBackReward());
@@ -150,6 +154,7 @@ public class MCTSplayer {
 		List<GameTreeNode> children = root.getChildren();
 		GameTreeNode node = root;
 		while(node != endNode){
+			System.out.println("here "+endNode.getState().getRemovedCards());
 			for(int i=0; i<children.size() ;i++){
 				node = children.get(i);
 				if(node.isInTPolicyPath()){
@@ -157,7 +162,7 @@ public class MCTSplayer {
 					//System.out.println("visits  "+node.getVisits());
 					//System.out.println("reward assigned "+ (node.getBackReward()*(node.getVisits()-1)+reward)/node.getVisits());
 					//System.out.print("state  "+node.getState().getRemovedCards());
-					node.setBackAvgReward((node.getBackAvgReward()*(node.getVisits()-1)+reward)/node.getVisits());
+					node.setBackAvgReward((float) ((node.getBackAvgReward()*(node.getVisits()-1)+reward/MAXSCOREONEMOVE)/node.getVisits()));//reward/MAXSCOREONEMOVE normalizing
 					if(reward >= node.getBackMaxReward()){
 						node.setBackMaxReward(reward);
 					}
@@ -196,7 +201,7 @@ public class MCTSplayer {
 			               //there are any then that is added to this parent after out of the while loop 
 			node.setInTPolicyPath(true);
 			node.setVisits(node.getVisits()+1);
-			//System.out.println("tree policy.. "+node.getState().getRemovedCards());
+			System.out.println("tree policy.. "+node.getState().getRemovedCards());
 			
 			for(GameState nState : nextStates){
 				if(node.getState().sameAs(nState)){ // Among all the states in nextStates check which was the one 
@@ -213,6 +218,7 @@ public class MCTSplayer {
 			//System.out.println("unexplored.. "+state.getRemovedCards());
 			pntsThisIter += nextStatesPoints.get(state);
 			gameNode = new GameTreeNode(state);
+			gameNode.setOneStepReward(nextStatesPoints.get(state));
 		}
 		if(gameNode == null){//tree policy reached terminal state
 			return null;
@@ -232,7 +238,11 @@ public class MCTSplayer {
 		GameTreeNode selChild = null;
 		for(GameTreeNode child : node.getChildren()){
 			//float uct = (float) (child.getBackAvgReward() + 2 * Cp * Math.sqrt(2 * Math.log(node.getVisits())/child.getVisits()));
-			double exploit = 0*child.getBackMaxReward()+(1-0)*child.getBackAvgReward();
+			double exploit = MIXMAX*child.getOneStepReward()/MAXSCOREONEMOVE+(1-MIXMAX)*child.getBackAvgReward();
+			if(exploit >= maxExploit){
+				maxExploit = exploit;
+				System.out.println("Max Exploit "+ maxExploit);
+			}
 			float uct = (float) (exploit + 2 * Cp * Math.sqrt(2 * Math.log(node.getVisits())/child.getVisits()));
 			if(uct >= maxUct){
 				selChild = child;
@@ -278,9 +288,9 @@ public class MCTSplayer {
 
 	private int defaultRun(GameTreeNode gameNode, int pntsThisIter, List<GameTreeNode> path) {
 		List<GameState> nextStates = new ArrayList<GameState>();
-		GameTreeNode node = gameNode;
+		GameTreeNode node;
 		HashMap<GameState, Integer> nStatesPoints = new HashMap<GameState, Integer>();
-		getNextStates(node.getState(), nextStates, nStatesPoints);
+		getNextStates(gameNode.getState(), nextStates, nStatesPoints);
 		while(!nStatesPoints.isEmpty()){
 			Set<GameState> gameStateSet = nStatesPoints.keySet();
 			GameState selState = null;
@@ -298,6 +308,7 @@ public class MCTSplayer {
 			pntsThisIter += nStatesPoints.get(selState);//points are calculated corresponding to that random selected node
 			
 			getNextStates(node.getState(), nextStates, nStatesPoints);//next state points are calculated for the next iteration
+		
 		}
 		return pntsThisIter;
 	}
@@ -333,31 +344,16 @@ public class MCTSplayer {
 		nextStates.removeAll(nextStatesCopy);
 		nextStateWithPoints.keySet().removeAll(nextStateWithPoints.keySet());
 		
-		//trashing every card at each of the 9 deck
-		getNextWhenTrashed(presentState, nextStateWithPoints,nextStates);
-		
-		//System.out.println("trash : No. of next states :"+nextStates.size());
-		
-		getNextWhenPaired(presentState, nextStateWithPoints,nextStates);
-		
-		//System.out.println("pair : No. of next states :"+nextStates.size());
-		
-		getNextWhenThreeRemoved(presentState, nextStateWithPoints,nextStates);
-		
-		//System.out.println("three : No. of next states :"+nextStates.size());
+		getNextWhenFiveRemoved(presentState, nextStateWithPoints,nextStates);
 		
 		getNextWhenFourRemoved(presentState, nextStateWithPoints,nextStates);
 		
-		//System.out.println("four : No. of next states :"+nextStates.size());
+		getNextWhenThreeRemoved(presentState, nextStateWithPoints,nextStates);
 		
-		getNextWhenFiveRemoved(presentState, nextStateWithPoints,nextStates);
+		getNextWhenTrashed(presentState, nextStateWithPoints,nextStates);
 		
-		//System.out.println("five : No. of next states :"+nextStates.size());
-		/*for(GameState nState : nextStates){
-			
-			nState.displayBoard();
-			System.out.println("POINTS : "+nextStateWithPoints.get(nState));
-		}*/
+		getNextWhenPaired(presentState, nextStateWithPoints,nextStates);
+		
 		
 	}
 	

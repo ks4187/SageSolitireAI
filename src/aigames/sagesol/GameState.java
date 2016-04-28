@@ -35,7 +35,15 @@ public class GameState {
 
     //public Stack<Integer>[] boardCards = new Stack[9];
 
-    private List<Integer> shuffledCards = new ArrayList<>();
+    public int[][] getNoOfCards() {
+		return noOfCards;
+	}
+
+	public void setNoOfCards(int[][] noOfCards) {
+		this.noOfCards = noOfCards;
+	}
+
+	private List<Integer> shuffledCards = new ArrayList<>();
     
     
     public List<Integer> getShuffledCards() {
@@ -46,9 +54,12 @@ public class GameState {
 		this.shuffledCards = shuffledCards;
 	}
 
-	private int[] fixedCards = {202, 13, 112, 105, 211, 207, 312, 201, 5, 101, 4, 104, 204, 106, 12, 313, 102, 311, 310, 305, 307, 308, 109, 203, 7, 304, 303, 205, 11, 107, 9, 110, 212, 111, 306, 309, 6, 10, 213, 113, 206, 209, 8, 3, 208, 301, 103, 1, 302, 2, 108, 210};
+	//private int[] fixedCards = {202, 13, 112, 105, 211, 207, 312, 201, 5, 101, 4, 104, 204, 106, 12, 313, 102, 311, 310, 305, 307, 308, 109, 203, 7, 304, 303, 205, 11, 107, 9, 110, 212, 111, 306, 309, 6, 10, 213, 113, 206, 209, 8, 3, 208, 301, 103, 1, 302, 2, 108, 210};
 	//private int[] fixedCards = {210, 302, 105, 108, 112, 313, 201, 205, 102, 11, 309, 303, 208, 7, 3, 5, 212, 1, 4, 304, 111, 306, 206, 101, 312, 106, 204, 209, 207, 113, 109, 308, 307, 305, 203, 202, 103, 13, 211, 311, 310, 2, 10, 213, 8, 110, 6, 301, 9, 12, 107, 104};
+	//max fixed cards below
+	private int[] fixedCards = {13, 1, 2, 3, 4, 5, 6, 7, 8, 101, 102, 103, 104, 105, 106, 107, 108, 201, 202, 203, 204, 205, 206, 207, 208, 301, 302, 303, 304, 305, 306, 307, 213, 12, 11, 10, 9, 308, 113, 112, 111, 110, 109, 212, 211, 210, 209, 312, 311, 310, 313, 309};
 
+	
     public GameState(boolean start) {
 
         if (start) {
@@ -202,20 +213,21 @@ public class GameState {
     }
 
     public boolean sameAs(GameState nState) {
-    	 if(this.removedCards.size() != nState.removedCards.size()){
+    	 if(this.removedCards.size() != nState.getRemovedCards().size()){
              return false;
          }
-         if(!(this.removedCards.containsAll(nState.removedCards))){
+         if(!(this.removedCards.containsAll(nState.getRemovedCards()))){
              return false;
          }
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
             	
-            	if(!(this.deckCards[i][j].isEmpty() && this.deckCards[i][j].isEmpty())){
-            		if((this.deckCards[i][j].isEmpty() || this.deckCards[i][j].isEmpty())){
+            	if(!(this.deckCards[i][j].isEmpty() && nState.getDeckCards()[i][j].isEmpty())){
+            		if((this.deckCards[i][j].isEmpty() || nState.getDeckCards()[i][j].isEmpty())){
             			return false;
             		}
-            		if (!(this.deckCards[i][j].get(0) == nState.deckCards[i][j].get(0))) {
+            		//if (!(this.deckCards[i][j].get(0) == nState.deckCards[i][j].get(0))) {
+            		if (!(this.deckCards[i][j].peek() == nState.getDeckCards()[i][j].peek())) {
                         return false;
                     }
             		

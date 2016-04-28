@@ -3,13 +3,72 @@ package aigames.sagesol;
 import java.util.ArrayList;
 import java.util.List;
 
+class MinGameTreeNode {
+	
+	List<Integer> removedCards;
+	
+	public MinGameTreeNode() {
+		removedCards = new ArrayList<Integer>();
+	}
+	
+	public List<Integer> getRemovedCards() {
+		return removedCards;
+	}
+	public void setRemovedCards(List<Integer> removedCards) {
+		this.removedCards = removedCards;
+	}
+	int remTrashes;
+	public int getRemTrashes() {
+		return remTrashes;
+	}
+	public void setRemTrashes(int remTrashes) {
+		this.remTrashes = remTrashes;
+	}
+	int rewardFromRoot;
+	
+	public int getRewardFromRoot() {
+		return rewardFromRoot;
+	}
+	public void setRewardFromRoot(int rewardFromRoot) {
+		this.rewardFromRoot = rewardFromRoot;
+	}
+	public List<MinGameTreeNode> getChildren() {
+		return children;
+	}
+	public void setChildren(List<MinGameTreeNode> children) {
+		this.children = children;
+	}
+	
+	List<MinGameTreeNode> children;
+}
+
+
 class GameTreeNode {
 	GameState state;
 	float backMaxReward;
 	int visits;
 	boolean inTPolicyPath;
 	float backAvgReward;
+	int rewardFromRoot;
+	int oneStepReward;
 	
+
+	public int getOneStepReward() {
+		return oneStepReward;
+	}
+
+	public void setOneStepReward(int oneStepReward) {
+		this.oneStepReward = oneStepReward;
+	}
+
+	public int getRewardFromRoot() {
+		return rewardFromRoot;
+	}
+
+	public void setRewardFromRoot(int rewardFromRoot) {
+		this.rewardFromRoot = rewardFromRoot;
+	}
+
 	public float getBackAvgReward() {
 		return backAvgReward;
 	}

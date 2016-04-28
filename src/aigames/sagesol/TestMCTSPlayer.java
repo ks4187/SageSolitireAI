@@ -8,10 +8,14 @@ import java.util.List;
 
 public class TestMCTSPlayer {
 
+	private static final int NUMBEROFGAMES = 1;
+	private static final int MCTSRUNS = 1;
+	
+
 	public static void main(String[] args) throws IOException {
 		
 		FileWriter writer = new FileWriter("d:\\SageTrainingData.csv");
-		for(int n=1; n<=1000; n++){
+		for(int n=1; n<=NUMBEROFGAMES; n++){
 			System.out.println("******GAME NO. "+n+" *******");
 			writer.append("\n");
 			
@@ -19,7 +23,7 @@ public class TestMCTSPlayer {
 			MCTSplayer player = new MCTSplayer();
 			int maxPoints = 0;
 			List<GameTreeNode> maxOfMaxScorePath = new ArrayList<GameTreeNode>();
-			for(int j=0;j<10;j++){  //Perform MCTS for multiple times
+			for(int j=0;j<MCTSRUNS;j++){  //Perform MCTS for multiple times
 				List<GameTreeNode> maxScorePath = player.performMCTS(startState);
 				GameState prevState = startState;
 				//prevState.displayBoard();

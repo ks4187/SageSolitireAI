@@ -1,5 +1,7 @@
-package aigames.sagesol;
+package aigames.sagesol.treesearch;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,7 +17,7 @@ public class GameState {
     Stack<Integer>[][] deckCards;
     int remainingTrashes;
     
-    private static final boolean SINGLESAMEDECK = true;
+    private static final boolean SINGLESAMEDECK = false;
     
 
     private int[] playingCards;
@@ -257,5 +259,36 @@ public class GameState {
         }
 	        
 		return cardsDeck;
+	}
+
+	public void logBoard(FileWriter log) throws IOException {
+
+        log.append("Bonus Card: " + bonusCard+"\n");
+
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+            	if(!deckCards[i][j].isEmpty()){
+            		log.append(""+deckCards[i][j].peek());
+            	}else{
+            		log.append("Nil");
+            	}
+            	if(deckCards[i][j].size() < 1){
+            		log.append(" (" + ("None") + ")\t");
+            	}else{
+            		log.append(" (" + (deckCards[i][j].size() - 1) + ")\t");
+            	}
+            	
+            }
+            log.append("\n");
+        }
+        
+        log.append("Removed Cards \n");
+        if(removedCards != null){
+        	for(Integer card : removedCards){
+            	log.append(card+", ");
+            }
+        }
+        log.append("Trashes"+remainingTrashes+"\n");
+        
 	}
 }

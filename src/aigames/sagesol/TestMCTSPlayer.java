@@ -1,4 +1,4 @@
-package aigames.sagesol;
+package aigames.sagesol.treesearch;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -15,11 +15,14 @@ public class TestMCTSPlayer {
 	public static void main(String[] args) throws IOException {
 		
 		FileWriter writer = new FileWriter("d:\\SageTrainingData.csv");
+		FileWriter log = new FileWriter("d:\\SageTrainingLog.txt");
 		for(int n=1; n<=NUMBEROFGAMES; n++){
 			System.out.println("******GAME NO. "+n+" *******");
+			log.append("******GAME NO. "+n+" ******* \n");
 			writer.append("\n");
 			
 			GameState startState = new GameState(true); // true says generate new game 
+			startState.logBoard(log);
 			MCTSplayer player = new MCTSplayer();
 			int maxPoints = 0;
 			List<GameTreeNode> maxOfMaxScorePath = new ArrayList<GameTreeNode>();
@@ -55,11 +58,13 @@ public class TestMCTSPlayer {
 				//state.displayBoard();
 			}
 			System.out.println("$$$$ Max Total Score"+maxPoints);
-		
+			log.append("$$$$ Total Score"+maxPoints+"\n");
 			prepareTrainData(maxOfMaxScorePath,maxPoints,writer);
 		}
 		writer.flush();
 		writer.close();
+		log.flush();
+		log.close();
 	}
 
 	private static void prepareTrainData(List<GameTreeNode> maxOfMaxScorePath, int maxPoints, FileWriter writer) throws IOException {

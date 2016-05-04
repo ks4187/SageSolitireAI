@@ -1,4 +1,4 @@
-package aigames.sagesol;
+package aigames.sagesol.treesearch;
 
 import java.util.ArrayList;
 import java.util.List;
